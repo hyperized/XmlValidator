@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Hyperized\Xml\Types;
 
@@ -14,15 +16,13 @@ use Hyperized\Xml\Exceptions\FileDoesNotExist;
  */
 class File
 {
-    /**
-     * @var string
-     */
-    private $path;
+    private string $path;
 
     /**
      * File constructor.
      *
-     * @param  string $path
+     * @param string $path
+     *
      * @throws FileDoesNotExist
      */
     public function __construct(string $path)
@@ -37,9 +37,10 @@ class File
      */
     private function pathExists(): bool
     {
-        if (!file_exists($this->path)) {
+        if (! file_exists($this->path)) {
             throw new FileDoesNotExist(ErrorMessages::FILE_DOES_NOT_EXIST);
         }
+
         return true;
     }
 

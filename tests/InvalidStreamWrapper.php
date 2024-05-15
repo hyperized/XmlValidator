@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php declare( strict_types=1 );
 
 namespace Hyperized\Xml\Tests;
 
@@ -7,21 +7,18 @@ namespace Hyperized\Xml\Tests;
  *
  * @package Hyperized\Xml\Types
  */
-class InvalidStreamWrapper
-{
-    /**
-     * @return bool
-     */
-    public function stream_open(): bool
-    {
-        return false;
-    }
+class InvalidStreamWrapper {
+	/**
+	 * @return bool
+	 */
+	public function stream_open(): bool {
+		return false;
+	}
 
-    /**
-     * @return array<string>
-     */
-    public function url_stat(): array
-    {
-        return [];
-    }
+	/**
+	 * @return array<string>
+	 */
+	public function url_stat(): array {
+		return [];
+	}
 }

@@ -1,18 +1,22 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Hyperized\Xml;
 
 use DOMDocument;
+use Exception;
 use Hyperized\Xml\Constants\ErrorMessages;
 use Hyperized\Xml\Constants\Strings;
-use Hyperized\Xml\Exceptions\FileCouldNotBeOpenedException;
-use Hyperized\Xml\Exceptions\InvalidXml;
 use Hyperized\Xml\Exceptions\EmptyFile;
+use Hyperized\Xml\Exceptions\FileCouldNotBeOpenedException;
 use Hyperized\Xml\Exceptions\FileDoesNotExist;
+use Hyperized\Xml\Exceptions\InvalidXml;
 use Hyperized\Xml\Types\Files\Xml;
 use Hyperized\Xml\Types\Files\Xsd;
-use function is_string;
 use LibXMLError;
+
+use function is_string;
 
 /**
  * Class Validator
@@ -25,40 +29,39 @@ final class Validator implements ValidatorInterface
     /**
      * @var string
      */
-    private $version = Strings::VERSION;
+    private string $version = Strings::VERSION;
     /**
      * @var string
      */
-    private $encoding = Strings::UTF_8;
+    private string $encoding = Strings::UTF_8;
+
+    private Exception $exception;
 
     public function isXMLFileValid(string $xmlPath, string $xsdPath = null): bool
     {
         try {
-            $string = (new Xml($xmlPath))
-                ->getContents();
-        } catch (EmptyFile $e) {
-            return false;
-        } catch (FileCouldNotBeOpenedException $e) {
-            return false;
-        } catch (FileDoesNotExist $e) {
-            return false;
-        }
-
-        if ($xsdPath !== null) {
-            try {
-                $xsdPath = (new Xsd($xsdPath))
-                    ->getPath();
-            } catch (FileDoesNotExist $e) {
-                return false;
+            $string = ( new Xml($xmlPath) )->getContents();
+            if ($xsdPath !== null) {
+                $xsdPath = ( new Xsd($xsdPath) )->getPath();
             }
+        } catch (FileDoesNotExist | FileCouldNotBeOpenedException | EmptyFile $exception) {
+            $this->exception = $exception;
+
+            return false;
         }
 
         return $this->isXMLStringValid($string, $xsdPath);
     }
 
+    public function throwError(): void
+    {
+        throw $this->exception;
+    }
+
     /**
-     * @param  string      $xml
-     * @param  string|null $xsdPath
+     * @param string $xml
+     * @param string|null $xsdPath
+     *
      * @return bool
      */
     public function isXMLStringValid(string $xml, string $xsdPath = null): bool
@@ -67,15 +70,17 @@ final class Validator implements ValidatorInterface
             if (is_string($xsdPath)) {
                 return $this->isXMLValid($xml, $xsdPath);
             }
+
             return $this->isXMLValid($xml);
-        } catch (InvalidXml $e) {
+        } catch (InvalidXml) {
             return false;
         }
     }
 
     /**
-     * @param  string      $xmlContent
-     * @param  string|null $xsdPath
+     * @param string $xmlContent
+     * @param string|null $xsdPath
+     *
      * @return bool
      * @throws InvalidXml
      */
@@ -93,11 +98,13 @@ final class Validator implements ValidatorInterface
         $errors = libxml_get_errors();
         libxml_clear_errors();
         self::parseErrors($errors);
+
         return true;
     }
 
     /**
-     * @param  string $xmlContent
+     * @param string $xmlContent
+     *
      * @throws InvalidXml
      */
     private static function checkEmptyWhenTrimmed(string $xmlContent): void
@@ -108,12 +115,13 @@ final class Validator implements ValidatorInterface
     }
 
     /**
-     * @param  array<LibXMLError>|null $errors
+     * @param array<LibXMLError>|null $errors
+     *
      * @throws InvalidXml
      */
     private static function parseErrors(?array $errors): void
     {
-        if (!empty($errors)) {
+        if (! empty($errors)) {
             $reduced = array_reduce(
                 $errors,
                 static function (
@@ -121,11 +129,12 @@ final class Validator implements ValidatorInterface
                     LibXMLError $item
                 ): array {
                     $carry[] = trim($item->message);
+
                     return $carry;
                 }
             );
 
-            if (!empty($reduced)) {
+            if (! empty($reduced)) {
                 throw new InvalidXml(implode(Strings::NEW_LINE, $reduced));
             }
         }
