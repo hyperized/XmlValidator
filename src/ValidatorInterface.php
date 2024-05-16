@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Hyperized\Xml;
 
@@ -19,6 +21,7 @@ interface ValidatorInterface
     /**
      * @param  string      $xml
      * @param  string|null $xsdPath
+     * @param  bool $returnError
      * @return bool
      */
     public function isXMLStringValid(string $xml, string $xsdPath = null): bool;
@@ -42,4 +45,10 @@ interface ValidatorInterface
      * @param string $encoding
      */
     public function setEncoding(string $encoding): void;
+
+    public function getErrorCode(): int;
+
+    public function getErrorMessage(): string;
+
+    public function getErrorType(): null|string;
 }

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Hyperized\Xml;
 
@@ -31,16 +33,18 @@ final class Validator implements ValidatorInterface
      */
     private $encoding = Strings::UTF_8;
 
+    /**
+     * @var null|\Exception
+     */
+    private $error = null;
+
     public function isXMLFileValid(string $xmlPath, string $xsdPath = null): bool
     {
         try {
             $string = (new Xml($xmlPath))
                 ->getContents();
-        } catch (EmptyFile $e) {
-            return false;
-        } catch (FileCouldNotBeOpenedException $e) {
-            return false;
-        } catch (FileDoesNotExist $e) {
+        } catch (EmptyFile | FileCouldNotBeOpenedException | FileDoesNotExist $e) {
+            $this->error = $e;
             return false;
         }
 
@@ -49,6 +53,7 @@ final class Validator implements ValidatorInterface
                 $xsdPath = (new Xsd($xsdPath))
                     ->getPath();
             } catch (FileDoesNotExist $e) {
+                $this->error = $e;
                 return false;
             }
         }
@@ -59,6 +64,7 @@ final class Validator implements ValidatorInterface
     /**
      * @param  string      $xml
      * @param  string|null $xsdPath
+     * @param  bool $returnError
      * @return bool
      */
     public function isXMLStringValid(string $xml, string $xsdPath = null): bool
@@ -69,6 +75,7 @@ final class Validator implements ValidatorInterface
             }
             return $this->isXMLValid($xml);
         } catch (InvalidXml $e) {
+            $this->error = $e;
             return false;
         }
     }
@@ -161,5 +168,38 @@ final class Validator implements ValidatorInterface
     public function setEncoding(string $encoding): void
     {
         $this->encoding = $encoding;
+    }
+
+    /**
+     * @return int Will return 0 when no error has occurred
+     */
+    public function getErrorCode(): int
+    {
+        if (null !== $this->error) {
+            return $this->error->getCode();
+        }
+
+        return 0;
+    }
+
+    /**
+     * @return string Will return empty string when no error has occurred
+     */
+    public function getErrorMessage(): string
+    {
+        if (null !== $this->error) {
+            return $this->error->getMessage();
+        }
+
+        return '';
+    }
+
+    public function getErrorType(): null|string
+    {
+        if (null !== $this->error) {
+            return get_class($this->error);
+        }
+
+        return null;
     }
 }
