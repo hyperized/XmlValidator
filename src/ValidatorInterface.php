@@ -16,7 +16,7 @@ interface ValidatorInterface
      * @param  string|null $xsdPath
      * @return bool
      */
-    public function isXMLFileValid(string $xmlPath, string $xsdPath = null, bool $returnError = false): bool|string;
+    public function isXMLFileValid(string $xmlPath, string $xsdPath = null): bool;
 
     /**
      * @param  string      $xml
@@ -24,7 +24,7 @@ interface ValidatorInterface
      * @param  bool $returnError
      * @return bool
      */
-    public function isXMLStringValid(string $xml, string $xsdPath = null, bool $returnError = false): bool|string;
+    public function isXMLStringValid(string $xml, string $xsdPath = null): bool;
 
     /**
      * @return string
@@ -45,4 +45,10 @@ interface ValidatorInterface
      * @param string $encoding
      */
     public function setEncoding(string $encoding): void;
+
+    public function getErrorCode(): int;
+
+    public function getErrorMessage(): string;
+
+    public function getErrorType(): null|string;
 }
